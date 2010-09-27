@@ -1,0 +1,11 @@
+"story_description","story_size_value","story_title","priority","estimated_hours","task_description","task_status","task_owner"
+"Setup Spree",12,"Setup Spree",1,2,"Install Spree","Not Started",
+"Setup Spree",12,"Setup Spree",1,8,"Convert Views","Not Started",
+"Setup Spree",12,"Setup Spree",1,2,"Install Extentions","Not Started",
+"Spree / Netsuite Integration",20,"Spree / Netsuite Integration",2,10,"Setup scripts to transfer inventory and product counts to Spree","Not Started",
+"Spree / Netsuite Integration",20,"Spree / Netsuite Integration",2,10,"When selecting a product in spree it is added to the Netsuite cart and we use the Netsuite checkout","Not Started",
+"Deployment",4,"Deployment",3,3,"Setup staging server","Not Started",
+"Deployment",4,"Deployment",3,1,"Setup production server","Not Started",
+"Spree modifications edit ",10,"Spree modifications edit ",4,2,"Warranties and product logos for products. These are essentially recurring images that can be selected for any product.","Not Started",
+"Spree modifications edit ",10,"Spree modifications edit ",4,6,"Special prices for certain logins and signup for ‘dealer’ to get those prices","Not Started",
+"Spree modifications edit ",10,"Spree modifications edit ",4,2,"Category description sections","Not Started",

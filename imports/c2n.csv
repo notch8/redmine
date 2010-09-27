@@ -1,0 +1,47 @@
+"story_description","story_size_value","story_title","priority","estimated_hours","task_description","task_status","task_owner"
+"Setup the facebook account for the connect2need demo site",2,"Setup Facebook Account For Demo",1,0,"Setup Facebook Account For Demo","Completed","rob@notch8.com"
+"Setup the facebook account for the connect2need demo site",2,"Setup Facebook Account For Demo",1,0,"Fix Facebooker in IE","Completed","rob@notch8.com"
+,1,"April 6th Changes",2,1,"Full Feed - Only the last update is posting rather than all the updates [0.25]","Completed","rob@notch8.com"
+,1,"April 6th Changes",2,0,"Gift Card - Prints gold in IE?","Completed",
+,1,"April 6th Changes",2,1,"News Feed section - color in the title bar of the updates with a very light gray to visually separate the updates [0.25]","Completed","rob@notch8.com"
+,1,"April 6th Changes",2,1,"Full Feed - Need larger Font size on ""Stuart Orr's Complete News Feed Profile"" [0.25]","Completed","rob@notch8.com"
+,1,"April 6th Changes",2,0,"Group Giving -It's posting all the comments and not rolling over to the View All Comments page on the 11th one.","Completed",
+,1,"April 6th Changes",2,0,"Font Size - make all subheadings like ""Loans you've donated to"" the same size as the Title ""Stuart Orr's Giving Profile""  [0.25]","Completed","rob@notch8.com"
+,1,"April 6th Changes",2,0,"Add blank line for spacing below Join This Group and another blank line below SHARE","Completed",
+,1,"April 6th Changes",2,1,"Change message to ""Stuart Orr's Complete News Feed""  and put this link "" Profile"" on a second line [0.25]","Completed","rob@notch8.com"
+,1,"April 15th Issues",3,0,"The Contact Us page (link in footer) has a big white space before the connect2need contact info is presented.  Please reduce the white space and increase the font size of the contact info.","Completed",
+,1,"April 15th Issues",3,0,"Make name longer (2 lines) on details page","Completed",
+"Right now we can sort by name, amount and category.  We want to add activity to this list",1,"Add sort by activity",4,1,"Unjumble current sorting","Completed",
+"Right now we can sort by name, amount and category.  We want to add activity to this list",1,"Add sort by activity",4,0,"Add new sorting to select box","Completed",
+"Right now we can sort by name, amount and category.  We want to add activity to this list",1,"Add sort by activity",4,0,"Add new sorting to controller","Completed",
+,1,"April 26th Email",5,0,"Please up the font size of the news feed?","Completed",
+,1,"April 26th Email",5,0,"The term ""News feed"" did not come up in Translate so I could not change it to ""Impact"". ( I was able to change ""Loans you've donated to"" to ""Projects you've donated to"" successfully through Translate. )","Completed",
+,1,"April 26th Email",5,0,"Thank you for adding the gray to the title bar for ease of reading.  Please make it one notch darker.","Completed",
+"Translate is somehow getting cached and not changing",0,"Fix caching of translate",6,,"Fix caching of translate",,
+,0,"Add gf link",7,0,"Add another gift card to your basket  on the bottom of the checkout page","Completed",
+,1,"May 12 issues",8,0,"My picture won't upload for the Facebook sign in","Completed",
+,1,"May 12 issues",8,0,"Check Profile links in IE","Completed",
+,0,"Check Facebook Connect in IE",9,,"Check Facebook Connect in IE",,
+,0,"Check on analytics",10,0,"Update Analyitcs to current system","Not Started",
+,0,"Check on analytics",10,0,"Add Stu to Analytics","Not Started",
+,4,"Create Prospect site",11,0,"Create prospect","Completed",
+"Please put in Translate the ability to get to ""Need"" on these two screens as it is a sort variable (#4) on All Projects Page and on the Information page of Super User (Edit project descriptions). 
+ 
+On these two pages I am wanting to change ""Need"" to ""Mission""
+ 
+http://demo.connect2need.com/show/13 (UI)
+ 
+http://demo.connect2need.com/loan/show/15 (Super User)",0,"Need Translations",12,,"Need Translations",,
+,1,"Gift Cards",13,,"Gift Cards",,
+,4,"Setup Thaf Site",14,0,"the links are broken for the donate buttons","Completed",
+,4,"Setup Thaf Site",14,0,"the ""Go"" arrows are missing","Completed",
+,0,"Nativity to Growers",15,0,"Look into zero projects bug","Committed",
+,0,"Nativity to Growers",15,0,"Clear out old db entries","Completed",
+,0,"Nativity to Growers",15,0,"Check on complete donation button","Completed",
+,0,"Group Page",16,0,"I want to change the wording in the top box on the Group Page --
+ 
+From:  How do Groups Work?   To: How do Fundraisers Work?
+From: Search for an existing group  To: Join an Existing Fundraiser
+ 
+It would be best in Translate but that isn't mandatory.","Not Started",
+,0,"Group Page",16,0,"On the Group page -- the text in the bottom box that follows the title in growers.connect2need.com says ""Become a champion for Growers First. Start an online fundraising group.""  That is the same text that appears in the Group box on the homepage.  In Translate that text only comes up 1 time so I can't change the two texts independently.  I would like to add wording to the Group page version and not have it show up on the homepage.","Not Started",
