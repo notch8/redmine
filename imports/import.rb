@@ -1,10 +1,10 @@
-Import::Story.load_from_csv("cplus.csv")
-project_id = 2
+Import::Story.load_from_csv(RAILS_ROOT + "/imports/tc.csv")
+project_id = 8
 feature_id = 2
 task_id = 4
 author_id = 1
 
-status_map = {"Not Started" => 1, nil => 1, "Completed" => 5, "Committed" => 3, "Staged" => 7}
+status_map = {nil => 1, "Blocked" => 6, "Completed" => 5, "Committed" => 3, "Not Started" => 1, "Staged" => 7, "Verified" => 4}
 
 Import::Story.stories.each do |story|
   begin
