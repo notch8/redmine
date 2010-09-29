@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'fastercsv'
-require 'task'
+require File.dirname(__FILE__) + '/task.rb'
 
 module Import
   class Story
