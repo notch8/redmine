@@ -3,6 +3,7 @@ set :repository,  "git@github.com:notch8/redmine.git"
 
 set :scm, :git
 set :deploy_to, "/var/www/apps/#{application}"
+set :branch, "production"
 
 role :web, "notch8.com"                          # Your HTTP server, Apache/etc
 role :app, "notch8.com"                          # This may be the same as your `Web` server
