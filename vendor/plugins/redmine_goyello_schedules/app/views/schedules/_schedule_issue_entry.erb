@@ -7,7 +7,7 @@
   <td style="background: #eee">
     <%= link_to "#" + schedule_issue_entry.id.to_s, { :controller => 'issues',
       :action => 'show', :id => schedule_issue_entry.id.to_s },
-      { :title => h(schedule_issue_entry.description.slice(0, 126)) } %>
+      { :title => h(schedule_issue_entry.description.to_s.slice(0, 126)) } %>
   </td>
   
     <td class="sprint" style="display: none">
@@ -17,9 +17,9 @@
     </td>
 
   <td class="subject">
-    <%= link_to h(schedule_issue_entry.subject.slice(0, 46)), { :controller => 'issues',
+    <%= link_to h(schedule_issue_entry.subject.to_s.slice(0, 46)), { :controller => 'issues',
       :action => 'show', :id => schedule_issue_entry.id.to_s },
-      { :title => h(schedule_issue_entry.description.slice(0, 176)) } %>
+      { :title => h(schedule_issue_entry.description.to_s.slice(0, 176)) } %>
   </td>
 
     <td class="t_estimated">
