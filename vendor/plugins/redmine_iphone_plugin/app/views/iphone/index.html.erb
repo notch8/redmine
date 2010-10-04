@@ -1,0 +1,25 @@
+<div id="home" class="current">
+    <div class="toolbar">
+        <h1 class="title"><%=h html_title %></h1>
+        <% if !User.current.logged? %>
+        <a class="button slideup" id="infoButton" href="/iphone/login">Login</a>
+        <% end %>
+    </div>
+
+    <% if User.current.logged? %>
+    <h2>My Projects</h2>
+    <% else %>
+    <h2>Projects</h2>
+    <% end %>
+
+    <ul class="rounded">
+        <% if @projects.any? %>
+            <% for project in @projects %>
+            <li class="arrow">
+                <%= link_to "#{h(project.name)} #{textilizable(project.short_description, :project => project)}", :controller => 'iphone/projects', :action => 'show', :id => project %>
+            </li>
+            <% end %>
+        <% end %>
+    </ul>
+
+</div>

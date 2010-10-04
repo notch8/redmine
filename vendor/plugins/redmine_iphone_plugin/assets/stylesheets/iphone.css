@@ -1,0 +1,61 @@
+#jqt ul li a p {
+    font-size: 14px;
+    color: #ddd;
+}
+#jqt ul li small {
+    margin-top: -22px;
+}
+
+/* issue */
+.details {
+    padding: 10px;
+    background: #fff;
+    color: #111;
+    line-height: 1.2;
+}
+
+.details h3 {
+    font-size: 18px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.details p {
+    margin: 1em 0;
+}
+
+.details table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.details th, .details td {
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+}
+
+#jqt .journal ul {
+    border: none;
+}
+
+#jqt .journal ul li {
+    background: none;
+    color: #666;
+    font-size: 13px;
+    border: none;
+    padding: 0;
+}
+
+#jqt .journal ul li a {
+    display: inline;
+    color: #369;
+}
+
+#history .contextual {
+    display: none;
+}
+
+/* timelog */
+#timelog-details .user,
+#timelog-details .comment {
+    font-size: 14px;
+}

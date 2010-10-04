@@ -1,0 +1,19 @@
+iPhone plugin for Redmine
+=============================
+
+An iPhone interface plugin for Redmine.
+
+Created by Handlino Inc. <http://handlino.com/>
+
+Requirement
+-----------------------------
+
+N/A
+
+Installation
+-----------------------------
+
+* cd to your redmine vendor/plugins dir
+* git clone the plugin
+* restart your Redmine web server
+* view http://redmine.server/iphone on iPhone
