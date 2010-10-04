@@ -1,0 +1,23 @@
+<div id="timelog-details" class="current">
+    <div class="toolbar">
+        <h1>Time log Details | <%=h @project.name %></h1>
+        <% if @project %>
+        <%= link_to "Back", { :controller => "projects", :action => "show", :id => @project }, :class => "back" %>
+        <% else %>
+        <%= link_to "Back", "/iphone", :class => "back" %>
+        <% end %>
+    </div>
+
+    <ul class="edgetoedge">
+        <% @entries.each do |entry| %>
+        <li>
+            <% if entry.issue %>
+            <p><%= link_to "##{entry.issue.id}", :controller => "issues", :action => "show", :id => entry.issue.id %></p>
+            <% end %>
+            <p><%=h entry.activity %>, <%= html_hours("%.1f" % entry.hours) %> Hours</p>
+            <span class="user"><%=h entry.user %></span>
+            <span class="comment"><%=h entry.comments %></span>
+        </li>
+        <% end %>
+    </ul>
+</div>

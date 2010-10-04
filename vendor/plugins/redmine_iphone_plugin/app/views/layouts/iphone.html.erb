@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html manifest="/plugin_assets/redmine_iphone_plugin/iphone.manifest">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <title><%=h html_title %></title>
+        <meta name="description" content="<%= Redmine::Info.app_name %>">
+        <meta name="keywords" content="issue,bug,tracker">
+        <%= stylesheet_link_tag 'jqtouch', 'themes/jqt/theme', 'iphone', :plugin => :redmine_iphone_plugin %>
+        <%= javascript_include_tag 'jquery-1.4.2.min.js', :plugin => :redmine_iphone_plugin %>
+        <script type="text/javascript">
+            $(function() {
+                $("form a.submit").live("click", function() {
+                    $(this).parents("form:first").submit();
+                    return false;
+                });
+
+                $("form input[type='submit']").each(function() {
+                    $("<a href='#' class='submit whiteButton'>" + $(this).val() + "</a>").insertBefore(this);
+                    $(this).remove();
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="jqt">
+            <%= render_flash_messages %>
+            <%= yield %>
+        </div>
+    </body>
+</html>
