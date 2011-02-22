@@ -22,7 +22,7 @@ Rails::Initializer.run do |config|
 
   # Add additional load paths for sweepers
   config.load_paths += %W( #{RAILS_ROOT}/app/sweepers )
-
+  config.gem 'rubytree', :lib => 'tree'
   # Force all environments to use the same logger level 
   # (by default production uses :info, the others :debug)
   # config.log_level = :debug
