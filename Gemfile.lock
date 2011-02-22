@@ -13,7 +13,7 @@ GEM
     activesupport (2.3.11)
     coderay (0.9.7)
     fastercsv (1.5.4)
-    hoe (2.9.1)
+    hoe (2.8.0)
       rake (>= 0.8.7)
     holidays (1.0.0)
     i18n (0.4.2)
@@ -46,6 +46,7 @@ PLATFORMS
 DEPENDENCIES
   coderay (~> 0.9.7)
   fastercsv
+  hoe (= 2.8.0)
   holidays
   i18n (= 0.4.2)
   icalendar
