@@ -2,7 +2,7 @@
     [
       {
         :item => "<a href='#' class='add_new_story'>New Story</a>",
-        :for  => :sprint
+        :for  => :both
       },
       {
         :item => menu_link(l(:label_task_board), {
@@ -13,7 +13,8 @@
       },
       {
         :item => "<a href='#' class='show_burndown_chart'>Burndown chart</a>",
-        :for  => :sprint
+        :for  => :sprint,
+        :condition => backlog[:sprint] && backlog[:sprint].has_burndown
       },
       {
         :item => menu_link(l(:label_stories_tasks), {
@@ -31,7 +32,7 @@
         :for => :product
       },
       {
-        :item => menu_link(l(:label_printable_cards), {
+        :item => menu_link(l(:label_sprint_cards), {
                            :controller => 'rb_stories',
                            :action => 'index',
                            :project_id => @project,
@@ -41,7 +42,7 @@
         :condition => Cards::TaskboardCards.selected_label
       },
       {
-        :item => menu_link(l(:label_printable_cards), {
+        :item => menu_link(l(:label_product_cards), {
                            :controller => 'rb_stories',
                            :action => 'index',
                            :project_id => @project,

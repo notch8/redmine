@@ -2,7 +2,8 @@
 <% content_for :head_tags do %>
   <%= javascript_include_tag  'show_main', 'board_updater', 'taskboard_updater', 'taskboard', 'model', 'issue', 'task', 'impediment', :plugin => 'redmine_backlogs' %>
   <%= stylesheet_link_tag 'jqplot.css', :plugin => 'redmine_backlogs' %>
-  <%= theme_stylesheet_link_tag 'taskboard.css' %>
+  <%= theme_stylesheet_link_tag 'taskboard.css', :media => 'print,screen' %>
+  <%= theme_stylesheet_link_tag 'taskboard_print.css', :media => 'print' %>
   <script type="text/javascript" src="<%= url_for(:controller => 'rb_server_variables', :action => 'show', :project_id => @project.id, :sprint_id => @sprint.id) %>"></script>
 <% end %>
 
@@ -34,7 +35,7 @@
 
   <table id="impediments" class="board" cellspacing="0">
     <tr>
-      <td<div class="label_sprint_impediments"><%= l(:label_sprint_impediments) %></div></td>
+      <td><div class="label_sprint_impediments"><%= l(:label_sprint_impediments) %></div></td>
       <td class="add_new">+</td>
       <%- @statuses.each do |status| %>
       <td class="swimlane list <%= status.is_closed? ? 'closed' : '' %>" id="impcell_<%= status.id %>">
@@ -56,7 +57,7 @@
       <td class="add_new">+</td>
       <%- @statuses.each do |status| %>
       <td class="swimlane list <%= status.is_closed? ? 'closed' : '' %>" id="<%= story.id %>_<%= status.id %>">
-        <%= render :partial => "rb_tasks/task", :collection => story.children.select{|task| task.status.id==status.id} %>
+        <%= render :partial => "rb_tasks/task", :collection => story.descendants.select{|task| task.status.id==status.id} %>
       </td>
       <%- end %>
     </tr>
@@ -80,7 +81,7 @@
   </div>
   <!-- end of templates -->
   <div id="issue_editor"> </div>
-  <div class="meta" id="last_updated"><%= date_string_with_milliseconds( (@last_updated.nil? ? Time.now : @last_updated.updated_on) )  %></div>
+  <div class="meta" id="last_updated"><%= date_string_with_milliseconds( (@last_updated.blank? ? Time.now : @last_updated.updated_on) )  %></div>
   <div id="charts"> </div>
   <div id="preloader">
     <div id="spinner"> </div>

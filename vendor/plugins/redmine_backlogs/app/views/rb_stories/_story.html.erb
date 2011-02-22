@@ -1,4 +1,4 @@
-<li class="story <%= mark_if_closed(story) %>" id="<%= story_html_id_or_empty(story) %>">
+<li class="model story <%= mark_if_closed(story) %>" id="<%= story_html_id_or_empty(story) %>">
   <div class="id">
     <div class="t"><%= issue_link_or_empty(story) %></div>
     <div class="v"><%= id_or_empty(story) %></div>
@@ -14,7 +14,7 @@
   </div>
   <div class="story_points editable" fieldname="story_points"><%= story_points_or_empty(story) %></div>
   <div class="fixed_version_id"><%= story.fixed_version_id %></div>
-  <div class="higher_item_id"><%= story.higher_item.nil? ? '' : story.higher_item.id %></div>
+  <div class="higher_item_id"><%= story.higher_item.blank? ? '' : story.higher_item.id %></div>
   <div class="meta">
     <%= render :partial => "shared/model_errors", :object => story.errors %>
   </div>

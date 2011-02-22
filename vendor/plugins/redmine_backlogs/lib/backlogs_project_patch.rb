@@ -50,15 +50,16 @@ module Backlogs
     end
 
     def score
-      score = {}
+      scoring = {}
       @errors.each_pair{ |k, v|
         if v.is_a? Hash
-          score[k] = v.values.select{|elt| !elt.nil? }.inject(true){|all, elt| all && elt}
+          v = v.values.select{|s| !s.nil?}
+          scoring[k] = v.select{|s| s}.size == 0 if v.size != 0
         else
-          score[k] = v if !v.nil?
+          scoring[k] = !v unless v.nil?
         end
       }
-      return ((score.values.select{|v| v}.size * 10) / score.size)
+      return ((scoring.values.select{|v| v}.size * 10) / scoring.size)
     end
 
     def scores(prefix='')
@@ -66,10 +67,10 @@ module Backlogs
       @errors.each_pair{|k, v|
         if v.is_a? Hash
           v.each_pair {|sk, rv|
-            score["#{prefix}#{k}_#{sk}".intern] = rv if !rv.nil?
+            score["#{prefix}#{k}_#{sk}".intern] = rv if !rv.blank?
           }
         else
-          score["#{prefix}#{k}".intern] = v if !v.nil?
+          score["#{prefix}#{k}".intern] = v if !v.blank?
         end
       }
       return score
@@ -124,7 +125,7 @@ module Backlogs
         @scrum_statistics[:info, :closed_sprints] = closed_sprints
   
         @scrum_statistics[:error, :product_backlog, :is_empty] = (self.status == Project::STATUS_ACTIVE && backlog.length == 0)
-        @scrum_statistics[:error, :product_backlog, :unsized] = backlog.inject(false) {|unsized, story| unsized || story.story_points.nil? }
+        @scrum_statistics[:error, :product_backlog, :unsized] = backlog.inject(false) {|unsized, story| unsized || story.story_points.blank? }
   
         @scrum_statistics[:error, :sprint, :unsized] = Issue.exists?(["story_points is null and parent_id is null and fixed_version_id in (?) and tracker_id in (?)", all_sprints.collect{|s| s.id}, Story.trackers])
         @scrum_statistics[:error, :sprint, :unestimated] = Issue.exists?(["estimated_hours is null and not parent_id is null and fixed_version_id in (?) and tracker_id = ?", all_sprints.collect{|s| s.id}, Task.tracker])
@@ -162,11 +163,19 @@ module Backlogs
         end
         @scrum_statistics[:info, :velocity] = velocity
   
-        begin
-          dps = (all_sprints.inject(0){|d, s| d + s.days.size} / all_sprints.size)
-          @scrum_statistics[:info, :average_days_per_sprint] = dps
-          @scrum_statistics[:info, :average_days_per_point] = (velocity ? dps.to_f / velocity : nil)
-        rescue ZeroDivisionError
+        if all_sprints.size != 0 && velocity && velocity != 0
+          begin
+            dps = (all_sprints.inject(0){|d, s| d + s.days.size} / all_sprints.size)
+            @scrum_statistics[:info, :average_days_per_sprint] = dps
+            @scrum_statistics[:info, :average_days_per_point] = (velocity ? (dps.to_f / velocity) : nil)
+          rescue ZeroDivisionError
+            dps = nil
+          end
+        else
+          dps = nil
+        end
+
+        if dps.nil?
           @scrum_statistics[:info, :average_days_per_sprint] = nil
           @scrum_statistics[:info, :average_days_per_point] = nil
         end
@@ -189,7 +198,8 @@ module Backlogs
           points_per_hour = Story.find_by_sql("select avg(story_points) / avg(estimated_hours) as points_per_hour from issues where #{select_stories}")[0].points_per_hour
   
           if points_per_hour
-            stories = Stories.select(:all, :conditions => [select_stories])
+            points_per_hour = Float(points_per_hour)
+            stories = Story.find(:all, :conditions => [select_stories])
             error = stories.inject(0) {|err, story|
               err + (1 - (points_per_hour / (story.story_points / story.estimated_hours)))
             }

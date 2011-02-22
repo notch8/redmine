@@ -5,6 +5,7 @@ require 'net/http'
 require 'rexml/document'
 
 require 'yaml'
+require 'uri/common'
 
 module Cards
     class TaskboardCards
@@ -36,18 +37,18 @@ module Cards
             @paper_width = geom[0]
             @paper_height = geom[1]
     
-            @top_margin = topts(label['top_margin'])
-            @vertical_pitch = topts(label['vertical_pitch'])
-            @height = topts(label['height'])
+            @top_margin = TaskboardCards.topts(label['top_margin'])
+            @vertical_pitch = TaskboardCards.topts(label['vertical_pitch'])
+            @height = TaskboardCards.topts(label['height'])
     
-            @left_margin = topts(label['left_margin'])
-            @horizontal_pitch = topts(label['horizontal_pitch'])
-            @width = topts(label['width'])
+            @left_margin = TaskboardCards.topts(label['left_margin'])
+            @horizontal_pitch = TaskboardCards.topts(label['horizontal_pitch'])
+            @width = TaskboardCards.topts(label['width'])
     
             @across = label['across']
             @down = label['down']
     
-            @inner_margin = topts(label['inner_margin']) || 1.mm
+            @inner_margin = TaskboardCards.topts(label['inner_margin']) || 1.mm
     
             @pdf = Prawn::Document.new(
                 :page_layout => :portrait,
@@ -56,6 +57,18 @@ module Cards
                 :top_margin => 0,
                 :bottom_margin => 0,
                 :page_size => label['papersize'])
+
+            fontdir = File.dirname(__FILE__) + '/ttf'
+            @pdf.font_families.update(
+              "DejaVuSans" => {
+                :bold         => "#{fontdir}/DejaVuSans-Bold.ttf",
+                :italic       => "#{fontdir}/DejaVuSans-Oblique.ttf",
+                :bold_italic  => "#{fontdir}/DejaVuSans-BoldOblique.ttf",
+                :normal       => "#{fontdir}/DejaVuSans.ttf"
+              }
+            )
+            @pdf.font "DejaVuSans"
+
     
             @cards = 0
         end
@@ -65,7 +78,20 @@ module Cards
           return x
         end
 
+        def self.malformed(label)
+          return TaskboardCards.topts(label['height']) > TaskboardCards.topts(label['vertical_pitch']) || TaskboardCards.topts(label['width']) > TaskboardCards.topts(label['horizontal_pitch'])
+        end
+
         def self.fetch_labels
+            LABELS.keys.each {|label|
+              if TaskboardCards.malformed(LABELS[label])
+                LABELS.delete(label)
+                puts "Removing malformed label '#{label}'"
+              end
+            }
+
+            malformed_labels = {}
+
             ['avery-iso-templates.xml',
              'avery-other-templates.xml',
              'avery-us-templates.xml',
@@ -78,8 +104,36 @@ module Cards
              'pearl-iso-templates.xml',  
              'uline-us-templates.xml',
              'worldlabel-us-templates.xml',
-             'zweckform-iso-templates.xml'].each {|url|
-                labels = Net::HTTP.get_response(URI.parse("http://git.gnome.org/browse/glabels/plain/templates/#{url}")).body
+             'zweckform-iso-templates.xml'].each {|filename|
+                uri = URI.parse("http://git.gnome.org/browse/glabels/plain/templates/#{filename}")
+                labels = nil
+
+                if ! ENV['http_proxy'].blank?
+                  begin
+                    proxy = URI.parse(ENV['http_proxy'])
+                    if proxy.userinfo
+                      user, pass = proxy.userinfo.split(/:/)
+                    else
+                      user = pass = nil
+                    end
+                    labels = Net::HTTP::Proxy(proxy.host, proxy.port, user, pass).start(uri.host) {|http| http.get(uri.path)}.body
+                  rescue URI::Error => e
+                    puts "Setup proxy failed: #{e}"
+                    labels = nil
+                  end
+                end
+
+                begin
+                  labels = Net::HTTP.get_response(uri).body if labels.nil?
+                rescue
+                  labels = nil
+                end
+
+                if labels.nil?
+                  puts "Could not fetch #{filename}"
+                  next
+                end
+
                 doc = REXML::Document.new(labels)
     
                 doc.elements.each('Glabels-templates/Template') do |specs|
@@ -93,7 +147,7 @@ module Cards
                         geom.elements.each('Markup-margin') do |m|
                             margin = m.attributes['size']
                         end
-                        margin = "1mm" if margin.nil?
+                        margin = "1mm" if margin.blank?
     
                         geom.elements.each('Layout') do |layout|
                             label = {
@@ -102,10 +156,10 @@ module Cards
                                 'down' => Integer(layout.attributes['ny']),
                                 'top_margin' => TaskboardCards.measurement(layout.attributes['y0']),
                                 'height' => TaskboardCards.measurement(geom.attributes['height']),
-                                'vertical_pitch' => TaskboardCards.measurement(layout.attributes['dx']),
+                                'horizontal_pitch' => TaskboardCards.measurement(layout.attributes['dx']),
                                 'left_margin' => TaskboardCards.measurement(layout.attributes['x0']),
                                 'width' => TaskboardCards.measurement(geom.attributes['width']),
-                                'horizontal_pitch' => TaskboardCards.measurement(layout.attributes['dy']),
+                                'vertical_pitch' => TaskboardCards.measurement(layout.attributes['dy']),
                                 'papersize' => papersize,
                                 'source' => 'glabel'
                             }
@@ -115,18 +169,35 @@ module Cards
                     next if label.nil?
     
                     key = "#{specs.attributes['brand']} #{specs.attributes['part']}"
+
+                    if TaskboardCards.malformed(label)
+                      puts "Skipping malformed label '#{key}' from #{filename}"
+                      malformed_labels[key] = label
+                    else
+                      LABELS[key] = label if not LABELS[key] or LABELS[key]['source'] == 'glabel'
     
-                    LABELS[key] = label if not LABELS[key] or LABELS[key]['source'] == 'glabel'
-    
-                    specs.elements.each('Alias') do |also|
-                        key = "#{also.attributes['brand']} #{also.attributes['part']}"
-                        LABELS[key] = label.dup if not LABELS[key] or LABELS[key]['source'] == 'glabel'
+                      specs.elements.each('Alias') do |also|
+                          key = "#{also.attributes['brand']} #{also.attributes['part']}"
+                          LABELS[key] = label.dup if not LABELS[key] or LABELS[key]['source'] == 'glabel'
+                      end
                     end
                 end
             }
     
             File.open(File.dirname(__FILE__) + '/labels.yaml', 'w') do |dump|
                 YAML.dump(LABELS, dump)
+            end
+            File.open(File.dirname(__FILE__) + '/labels-malformed.yaml', 'w') do |dump|
+                YAML.dump(malformed_labels, dump)
+            end
+
+            if Setting.plugin_redmine_backlogs[:card_spec] && ! TaskboardCards.selected_label && LABELS.size != 0
+              # current label non-existant
+              label = LABELS.keys[0]
+              puts "Non-existant label stock '#{Setting.plugin_redmine_backlogs[:card_spec]}' selected, replacing with random '#{label}'"
+              s = Setting.plugin_redmine_backlogs
+              s[:card_spec] = label
+              Setting.plugin_redmine_backlogs = s
             end
         end
     
@@ -230,13 +301,23 @@ module Cards
             return box
         end
     
-        def topts(m)
-            return nil if m.class == NilClass
-            return Float(m[0..-3]).mm if m =~ /mm$/
-            return Float(m[0..-3]).cm if m =~ /cm$/
-            return Float(m[0..-3]).in if m =~ /in$/
-            return Float(m[0..-3]).pt if m =~ /pt$/
-            return Float(m)
+        def self.topts(v)
+            return nil if v.class == NilClass
+
+            if v =~ /[a-z]{2}$/i
+              units = v[-2, 2].downcase
+              v = v[0..-3]
+            else
+              units = 'pt'
+            end
+
+            v = "#{v}0" if v =~ /\.$/
+
+            return Float(v).mm if units == 'mm'
+            return Float(v).cm if units == 'cm'
+            return Float(v).in if units == 'in'
+            return Float(v).pt if units == 'pt'
+            raise "Unexpected units '#{units}'"
         end
     
         def top_left(row, col)
