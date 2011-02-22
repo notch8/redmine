@@ -1,3 +1,5 @@
+require 'rubygems'
+require "bundler/capistrano"
 set :application, "redmine"
 set :repository,  "git@github.com:notch8/redmine.git"
 

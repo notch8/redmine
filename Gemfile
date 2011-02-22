@@ -1,7 +1,9 @@
 # A sample Gemfile
 source "http://rubygems.org"
 
-gem "rails", "2.3.5"
+gem "rails", "~>2.3.8"
+
+gem 'rubytree', :require => 'tree'
 
 gem "fastercsv"
 gem "holidays"
