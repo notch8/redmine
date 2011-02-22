@@ -9,6 +9,7 @@ gem 'coderay', '~>0.9.7'
 gem "mysql"
 gem "fastercsv"
 gem "holidays"
+
 gem "icalendar"
 gem "iconv"
 gem "net-ldap", :require => "net/ldap"
