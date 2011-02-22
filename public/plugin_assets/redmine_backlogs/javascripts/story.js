@@ -1,7 +1,7 @@
 /**************************************
   STORY
 ***************************************/
-RB.Story = RB.Object.create(RB.Issue, {
+RB.Story = RB.Object.create(RB.Issue, RB.EditableInplace, {
   initialize: function(el){
     var j;  // This ensures that we use a local 'j' variable, not a global one.
     var self = this;
@@ -12,7 +12,7 @@ RB.Story = RB.Object.create(RB.Issue, {
     // Associate this object with the element for later retrieval
     j.data('this', this);
 
-    j.bind('mouseup', this.handleClick);
+    j.find(".editable").live('mouseup', this.handleClick);
   },
 
   beforeSave: function(){
@@ -23,8 +23,8 @@ RB.Story = RB.Object.create(RB.Issue, {
     return "Story #" + this.getID();
   },
 
-  editorDialogDisplayed: function(editor){
-    editor.dialog("option", "position", "center");
+  editorDisplayed: function(editor){
+    // editor.dialog("option", "position", "center");
   },
   
   getPoints: function(){
