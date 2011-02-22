@@ -16,7 +16,7 @@ GEM
     hoe (2.9.1)
       rake (>= 0.8.7)
     holidays (0.9.3)
-    i18n (0.5.0)
+    i18n (0.4.2)
     icalendar (1.1.5)
     iconv (0.1)
     mysql (2.8.1)
@@ -47,7 +47,7 @@ DEPENDENCIES
   coderay (~> 0.9.7)
   fastercsv
   holidays
-  i18n
+  i18n (= 0.4.2)
   icalendar
   iconv
   mysql
