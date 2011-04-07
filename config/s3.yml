@@ -1,0 +1,11 @@
+production:
+  access_key_id: 0YDDC67X0TC60PS82ER2
+  secret_access_key: /blsBCJwoIaUCoyCIB3putgCliTtJoDZFJ/W9A5a
+  bucket: notch8-redmine 
+  cname_bucket: false
+
+development:
+  access_key_id: 0YDDC67X0TC60PS82ER2
+  secret_access_key: /blsBCJwoIaUCoyCIB3putgCliTtJoDZFJ/W9A5a
+  bucket: notch8-redmine 
+  cname_bucket: false
