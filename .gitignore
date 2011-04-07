@@ -22,3 +22,5 @@
 /vendor/rails
 *.rbc
 tmp/*
+.rvmrc
+tags
