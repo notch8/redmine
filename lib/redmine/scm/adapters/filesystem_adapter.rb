@@ -32,9 +32,10 @@ module Redmine
           end
         end
 
-        def initialize(url, root_url=nil, login=nil, password=nil)
+        def initialize(url, root_url=nil, login=nil, password=nil,
+                       path_encoding=nil)
           @url = with_trailling_slash(url)
-          @path_encoding = 'UTF-8'
+          @path_encoding = path_encoding || 'UTF-8'
         end
 
         def format_path_ends(path, leading=true, trailling=true)
@@ -59,7 +60,9 @@ module Redmine
           trgt = scm_iconv(@path_encoding, 'UTF-8', trgt_utf8)
           Dir.new(trgt).each do |e1|
             e_utf8 = scm_iconv('UTF-8', @path_encoding, e1)
-            relative_path_utf8 = format_path_ends((format_path_ends(path,false,true) + e_utf8),false,false)
+            next if e_utf8.blank? 
+            relative_path_utf8 = format_path_ends(
+                (format_path_ends(path,false,true) + e_utf8),false,false)
             t1_utf8 = target(relative_path_utf8)
             t1 = scm_iconv(@path_encoding, 'UTF-8', t1_utf8)
             relative_path = scm_iconv(@path_encoding, 'UTF-8', relative_path_utf8)

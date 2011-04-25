@@ -44,7 +44,10 @@ module Redmine
           end
 
           def svn_binary_version
-            scm_version = scm_version_from_command_line
+            scm_version = scm_version_from_command_line.dup
+            if scm_version.respond_to?(:force_encoding)
+              scm_version.force_encoding('ASCII-8BIT')
+            end
             if m = scm_version.match(%r{\A(.*?)((\d+\.)+\d+)})
               m[2].scan(%r{\d+}).collect(&:to_i)
             end
@@ -62,6 +65,9 @@ module Redmine
           info = nil
           shellout(cmd) do |io|
             output = io.read
+            if output.respond_to?(:force_encoding)
+              output.force_encoding('UTF-8')
+            end
             begin
               doc = ActiveSupport::XmlMini.parse(output)
               #root_url = doc.elements["info/entry/repository/root"].text          
@@ -91,6 +97,9 @@ module Redmine
           cmd << credentials_string
           shellout(cmd) do |io|
             output = io.read
+            if output.respond_to?(:force_encoding)
+              output.force_encoding('UTF-8')
+            end
             begin
               doc = ActiveSupport::XmlMini.parse(output)
               each_xml_element(doc['lists']['list'], 'entry') do |entry|
@@ -131,6 +140,9 @@ module Redmine
           properties = {}
           shellout(cmd) do |io|
             output = io.read
+            if output.respond_to?(:force_encoding)
+              output.force_encoding('UTF-8')
+            end
             begin
               doc = ActiveSupport::XmlMini.parse(output)
               each_xml_element(doc['properties']['target'], 'property') do |property|
@@ -155,6 +167,9 @@ module Redmine
           cmd << ' ' + target(path)
           shellout(cmd) do |io|
             output = io.read
+            if output.respond_to?(:force_encoding)
+              output.force_encoding('UTF-8')
+            end
             begin
               doc = ActiveSupport::XmlMini.parse(output)
               each_xml_element(doc['log'], 'logentry') do |logentry|
@@ -224,15 +239,21 @@ module Redmine
           shellout(cmd) do |io|
             io.each_line do |line|
               next unless line =~ %r{^\s*(\d+)\s*(\S+)\s(.*)$}
-              blame.add_line($3.rstrip, Revision.new(:identifier => $1.to_i, :author => $2.strip))
+              rev = $1
+              blame.add_line($3.rstrip,
+                   Revision.new(
+                      :identifier => rev,
+                      :revision   => rev,
+                      :author     => $2.strip
+                      ))
             end
           end
           return nil if $? && $?.exitstatus != 0
           blame
         end
-        
+
         private
-        
+
         def credentials_string
           str = ''
           str << " --username #{shell_quote(@login)}" unless @login.blank?
@@ -240,9 +261,10 @@ module Redmine
           str << " --no-auth-cache --non-interactive"
           str
         end
-        
+
         # Helper that iterates over the child elements of a xml node
-        # MiniXml returns a hash when a single child is found or an array of hashes for multiple children
+        # MiniXml returns a hash when a single child is found
+        # or an array of hashes for multiple children
         def each_xml_element(node, name)
           if node && node[name]
             if node[name].is_a?(Hash)

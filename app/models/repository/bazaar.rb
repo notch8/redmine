@@ -19,7 +19,15 @@ require 'redmine/scm/adapters/bazaar_adapter'
 
 class Repository::Bazaar < Repository
   attr_protected :root_url
-  validates_presence_of :url
+  validates_presence_of :url, :log_encoding
+
+  def self.human_attribute_name(attribute_key_name)
+    attr_name = attribute_key_name
+    if attr_name == "url"
+      attr_name = "path_to_repository"
+    end
+    super(attr_name)
+  end
 
   def self.scm_adapter_class
     Redmine::Scm::Adapters::BazaarAdapter

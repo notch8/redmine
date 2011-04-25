@@ -43,7 +43,10 @@ module Redmine
           end
 
           def scm_command_version
-            scm_version = scm_version_from_command_line
+            scm_version = scm_version_from_command_line.dup
+            if scm_version.respond_to?(:force_encoding)
+              scm_version.force_encoding('ASCII-8BIT')
+            end
             if m = scm_version.match(%r{\A(.*?)((\d+\.)+\d+)})
               m[2].scan(%r{\d+}).collect(&:to_i)
             end
@@ -79,8 +82,8 @@ module Redmine
           path ||= ''
           entries = Entries.new
           cmd = "#{self.class.sq_bin} ls -v --show-ids"
-          identifier = -1 unless identifier && identifier.to_i > 0 
-          cmd << " -r#{identifier.to_i}" 
+          identifier = -1 unless identifier && identifier.to_i > 0
+          cmd << " -r#{identifier.to_i}"
           cmd << " #{target(path)}"
           shellout(cmd) do |io|
             prefix = "#{url}/#{path}".gsub('\\', '/')
@@ -117,7 +120,6 @@ module Redmine
                 parsing = nil
               else
                 next unless revision
-                
                 if line =~ /^revno: (\d+)($|\s\[merge\]$)/
                   revision.identifier = $1.to_i
                 elsif line =~ /^committer: (.+)$/
@@ -165,7 +167,7 @@ module Redmine
         def diff(path, identifier_from, identifier_to=nil)
           path ||= ''
           if identifier_to
-            identifier_to = identifier_to.to_i 
+            identifier_to = identifier_to.to_i
           else
             identifier_to = identifier_from.to_i - 1
           end
@@ -206,7 +208,13 @@ module Redmine
             identifier = nil
             io.each_line do |line|
               next unless line =~ %r{^(\d+) ([^|]+)\| (.*)$}
-              blame.add_line($3.rstrip, Revision.new(:identifier => $1.to_i, :author => $2.strip))
+              rev = $1
+              blame.add_line($3.rstrip,
+                 Revision.new(
+                  :identifier => rev,
+                  :revision   => rev,
+                  :author     => $2.strip
+                  ))
             end
           end
           return nil if $? && $?.exitstatus != 0

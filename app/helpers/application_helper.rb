@@ -1,5 +1,5 @@
 # Redmine - project management software
-# Copyright (C) 2006-2010  Jean-Philippe Lang
+# Copyright (C) 2006-2011  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -187,15 +187,15 @@ module ApplicationHelper
     end
   end
 
-  def render_page_hierarchy(pages, node=nil)
+  def render_page_hierarchy(pages, node=nil, options={})
     content = ''
     if pages[node]
       content << "<ul class=\"pages-hierarchy\">\n"
       pages[node].each do |page|
         content << "<li>"
         content << link_to(h(page.pretty_title), {:controller => 'wiki', :action => 'show', :project_id => page.project, :id => page.title},
-                           :title => (page.respond_to?(:updated_on) ? l(:label_updated_time, distance_of_time_in_words(Time.now, page.updated_on)) : nil))
-        content << "\n" + render_page_hierarchy(pages, page.id) if pages[page.id]
+                           :title => (options[:timestamp] && page.updated_on ? l(:label_updated_time, distance_of_time_in_words(Time.now, page.updated_on)) : nil))
+        content << "\n" + render_page_hierarchy(pages, page.id, options) if pages[page.id]
         content << "</li>\n"
       end
       content << "</ul>\n"
@@ -223,8 +223,8 @@ module ApplicationHelper
   
   # Renders the project quick-jump box
   def render_project_jump_box
-    # Retrieve them now to avoid a COUNT query
-    projects = User.current.projects.all
+    return unless User.current.logged?
+    projects = User.current.memberships.collect(&:project).compact.uniq
     if projects.any?
       s = '<select onchange="if (this.value != \'\') { window.location = this.value; }">' +
             "<option value=''>#{ l(:label_jump_to_a_project) }</option>" +
@@ -336,20 +336,18 @@ module ApplicationHelper
     page_param = options.delete(:page_param) || :page
     per_page_links = options.delete(:per_page_links)
     url_param = params.dup
-    # don't reuse query params if filters are present
-    url_param.merge!(:fields => nil, :values => nil, :operators => nil) if url_param.delete(:set_filter)
 
     html = ''
     if paginator.current.previous
-      html << link_to_remote_content_update('&#171; ' + l(:label_previous), url_param.merge(page_param => paginator.current.previous)) + ' '
+      html << link_to_content_update('&#171; ' + l(:label_previous), url_param.merge(page_param => paginator.current.previous)) + ' '
     end
 
     html << (pagination_links_each(paginator, options) do |n|
-      link_to_remote_content_update(n.to_s, url_param.merge(page_param => n))
+      link_to_content_update(n.to_s, url_param.merge(page_param => n))
     end || '')
     
     if paginator.current.next
-      html << ' ' + link_to_remote_content_update((l(:label_next) + ' &#187;'), url_param.merge(page_param => paginator.current.next))
+      html << ' ' + link_to_content_update((l(:label_next) + ' &#187;'), url_param.merge(page_param => paginator.current.next))
     end
 
     unless count.nil?
@@ -363,14 +361,8 @@ module ApplicationHelper
   end
   
   def per_page_links(selected=nil)
-    url_param = params.dup
-    url_param.clear if url_param.has_key?(:set_filter)
-
     links = Setting.per_page_options_array.collect do |n|
-      n == selected ? n : link_to_remote(n, {:update => "content",
-                                             :url => params.dup.merge(:per_page => n),
-                                             :method => :get},
-                                            {:href => url_for(url_param.merge(:per_page => n))})
+      n == selected ? n : link_to_content_update(n, params.merge(:per_page => n))
     end
     links.size > 1 ? l(:label_display_per_page, links.join(', ')) : nil
   end
@@ -398,7 +390,7 @@ module ApplicationHelper
       h(Setting.app_title)
     else
       b = []
-      ancestors = (@project.root? ? [] : @project.ancestors.visible)
+      ancestors = (@project.root? ? [] : @project.ancestors.visible.all)
       if ancestors.any?
         root = ancestors.shift
         b << link_to_project(root, {:jump => current_menu_item}, :class => 'root')
@@ -713,7 +705,7 @@ module ApplicationHelper
       item = strip_tags(content).strip
       anchor = item.gsub(%r{[^\w\s\-]}, '').gsub(%r{\s+(\-+\s*)?}, '-')
       @parsed_headings << [level, anchor, item]
-      "<h#{level} #{attrs} id=\"#{anchor}\">#{content}<a href=\"##{anchor}\" class=\"wiki-anchor\">&para;</a></h#{level}>"
+      "<a name=\"#{anchor}\"></a>\n<h#{level} #{attrs}>#{content}<a href=\"##{anchor}\" class=\"wiki-anchor\">&para;</a></h#{level}>"
     end
   end
           
@@ -855,6 +847,8 @@ module ApplicationHelper
           'Calendar._FD = 1;' # Monday
         when 7
           'Calendar._FD = 0;' # Sunday
+        when 6
+          'Calendar._FD = 6;' # Saturday
         else
           '' # use language
         end
@@ -907,6 +901,10 @@ module ApplicationHelper
   def favicon
     "<link rel='shortcut icon' href='#{image_path('/favicon.ico')}' />"
   end
+
+  def robot_exclusion_tag
+    '<meta name="robots" content="noindex,follow,noarchive" />'
+  end
   
   # Returns true if arg is expected in the API response
   def include_in_api_response?(arg)
@@ -938,11 +936,7 @@ module ApplicationHelper
     return self
   end
   
-  def link_to_remote_content_update(text, url_params)
-    link_to_remote(text,
-      {:url => url_params, :method => :get, :update => 'content', :complete => 'window.scrollTo(0,0)'},
-      {:href => url_for(:params => url_params)}
-    )
+  def link_to_content_update(text, url_params = {}, html_options = {})
+    link_to(text, url_params, html_options)
   end
-  
 end

@@ -19,14 +19,17 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class RepositoryBazaarTest < ActiveSupport::TestCase
   fixtures :projects
-  
+
   # No '..' in the repository path
   REPOSITORY_PATH = RAILS_ROOT.gsub(%r{config\/\.\.}, '') + '/tmp/test/bazaar_repository'
   REPOSITORY_PATH.gsub!(/\/+/, '/')
 
   def setup
-    @project = Project.find(1)
-    assert @repository = Repository::Bazaar.create(:project => @project, :url => "file:///#{REPOSITORY_PATH}")
+    @project = Project.find(3)
+    @repository = Repository::Bazaar.create(
+              :project => @project, :url => "file:///#{REPOSITORY_PATH}",
+              :log_encoding => 'UTF-8')
+    assert @repository
   end
 
   if File.directory?(REPOSITORY_PATH)  
@@ -67,6 +70,34 @@ class RepositoryBazaarTest < ActiveSupport::TestCase
 
       assert_equal 'file', entries.last.kind
       assert_equal 'edit.png', entries.last.name
+    end
+
+    def test_previous
+      @repository.fetch_changesets
+      @repository.reload
+      changeset = @repository.find_changeset_by_name('3')
+      assert_equal @repository.find_changeset_by_name('2'), changeset.previous
+    end
+
+    def test_previous_nil
+      @repository.fetch_changesets
+      @repository.reload
+      changeset = @repository.find_changeset_by_name('1')
+      assert_nil changeset.previous
+    end
+
+    def test_next
+      @repository.fetch_changesets
+      @repository.reload
+      changeset = @repository.find_changeset_by_name('2')
+      assert_equal @repository.find_changeset_by_name('3'), changeset.next
+    end
+
+    def test_next_nil
+      @repository.fetch_changesets
+      @repository.reload
+      changeset = @repository.find_changeset_by_name('4')
+      assert_nil changeset.next
     end
   else
     puts "Bazaar test repository NOT FOUND. Skipping unit tests !!!"

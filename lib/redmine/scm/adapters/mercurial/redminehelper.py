@@ -119,8 +119,15 @@ def _manifest(ui, repo, path, rev):
 
     ui.write('</manifest>\n')
 
+def rhannotate(ui, repo, *pats, **opts):
+    rev = urllib.unquote_plus(opts.pop('rev', None))
+    opts['rev'] = rev
+    return commands.annotate(ui, repo, *map(urllib.unquote_plus, pats), **opts)
+
 def rhcat(ui, repo, file1, *pats, **opts):
-    return commands.cat(ui, repo, urllib.unquote(file1), *map(urllib.unquote, pats), **opts)
+    rev = urllib.unquote_plus(opts.pop('rev', None))
+    opts['rev'] = rev
+    return commands.cat(ui, repo, urllib.unquote_plus(file1), *map(urllib.unquote_plus, pats), **opts)
 
 def rhdiff(ui, repo, *pats, **opts):
     """diff repository (or selected files)"""
@@ -129,7 +136,19 @@ def rhdiff(ui, repo, *pats, **opts):
         base = repo.changectx(change).parents()[0].rev()
         opts['rev'] = [str(base), change]
     opts['nodates'] = True
-    return commands.diff(ui, repo, *map(urllib.unquote, pats), **opts)
+    return commands.diff(ui, repo, *map(urllib.unquote_plus, pats), **opts)
+
+def rhlog(ui, repo, *pats, **opts):
+    rev      = opts.pop('rev')
+    bra0     = opts.pop('branch')
+    from_rev = urllib.unquote_plus(opts.pop('from', None))
+    to_rev   = urllib.unquote_plus(opts.pop('to'  , None))
+    bra      = urllib.unquote_plus(opts.pop('rhbranch', None))
+    from_rev = from_rev.replace('"', '\\"')
+    to_rev   = to_rev.replace('"', '\\"')
+    opts['rev'] = ['"%s":"%s"' % (from_rev, to_rev)]
+    opts['branch'] = [bra]
+    return commands.log(ui, repo, *map(urllib.unquote_plus, pats), **opts)
 
 def rhmanifest(ui, repo, path='', **opts):
     """output the sub-manifest of the specified directory"""
@@ -137,7 +156,7 @@ def rhmanifest(ui, repo, path='', **opts):
     ui.write('<rhmanifest>\n')
     ui.write('<repository root="%s">\n' % _u(repo.root))
     try:
-        _manifest(ui, repo, urllib.unquote(path), opts.get('rev'))
+        _manifest(ui, repo, urllib.unquote_plus(path), urllib.unquote_plus(opts.get('rev')))
     finally:
         ui.write('</repository>\n')
         ui.write('</rhmanifest>\n')
@@ -159,6 +178,13 @@ def rhsummary(ui, repo, **opts):
 # This extension should be compatible with Mercurial 0.9.5.
 # Note that Mercurial 0.9.5 doesn't have extensions.wrapfunction().
 cmdtable = {
+    'rhannotate': (rhannotate,
+         [('r', 'rev', '', 'revision'),
+          ('u', 'user', None, 'list the author (long with -v)'),
+          ('n', 'number', None, 'list the revision number (default)'),
+          ('c', 'changeset', None, 'list the changeset'),
+         ],
+         'hg rhannotate [-r REV] [-u] [-n] [-c] FILE...'),
     'rhcat': (rhcat,
                [('r', 'rev', '', 'revision')],
                'hg rhcat ([-r REV] ...) FILE...'),
@@ -166,6 +192,26 @@ cmdtable = {
                [('r', 'rev', [], 'revision'),
                 ('c', 'change', '', 'change made by revision')],
                'hg rhdiff ([-c REV] | [-r REV] ...) [FILE]...'),
+    'rhlog': (rhlog,
+                   [
+                    ('r', 'rev', [], 'show the specified revision'),
+                    ('b', 'branch', [],
+                       'show changesets within the given named branch', 'BRANCH'),
+                    ('l', 'limit', '',
+                         'limit number of changes displayed', 'NUM'),
+                    ('d', 'date', '',
+                         'show revisions matching date spec', 'DATE'),
+                    ('u', 'user', [],
+                      'revisions committed by user', 'USER'),
+                    ('', 'from', '',
+                      '', ''),
+                    ('', 'to', '',
+                      '', ''),
+                    ('', 'rhbranch', '',
+                      '', ''),
+                    ('', 'template', '',
+                       'display with template', 'TEMPLATE')],
+                   'hg rhlog [OPTION]... [FILE]'),
     'rhmanifest': (rhmanifest,
                    [('r', 'rev', '', 'show the specified revision')],
                    'hg rhmanifest [-r REV] [PATH]'),

@@ -101,11 +101,11 @@ class Redmine::I18nTest < ActiveSupport::TestCase
   
   def test_utc_time_format
     set_language_if_valid 'en'
-    now = Time.now.utc
+    now = Time.now
     Setting.date_format = '%d %m %Y'
     Setting.time_format = '%H %M'
-    assert_equal Time.now.strftime('%d %m %Y %H %M'), format_time(now)
-    assert_equal Time.now.strftime('%H %M'), format_time(now, false)
+    assert_equal now.strftime('%d %m %Y %H %M'), format_time(now.utc)
+    assert_equal now.strftime('%H %M'), format_time(now.utc, false)
   end
   
   def test_number_to_human_size_for_each_language
@@ -145,5 +145,16 @@ class Redmine::I18nTest < ActiveSupport::TestCase
     assert_equal "Untranslated string", l(:untranslated)
     ::I18n.locale = 'fr'
     assert_equal "Pas de traduction", l(:untranslated)
+  end
+
+  def test_utf8
+    set_language_if_valid 'ja'
+    str_ja_yes  = "\xe3\x81\xaf\xe3\x81\x84"
+    i18n_ja_yes = l(:general_text_Yes)
+    if str_ja_yes.respond_to?(:force_encoding)
+      str_ja_yes.force_encoding('UTF-8')
+      assert_equal "UTF-8", i18n_ja_yes.encoding.to_s
+    end
+    assert_equal str_ja_yes, i18n_ja_yes
   end
 end

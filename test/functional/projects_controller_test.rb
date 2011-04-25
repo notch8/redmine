@@ -57,7 +57,7 @@ class ProjectsControllerTest < ActionController::TestCase
     assert_response :success
     assert_template 'common/feed.atom.rxml'
     assert_select 'feed>title', :text => 'Redmine: Latest projects'
-    assert_select 'feed>entry', :count => Project.count(:conditions => Project.visible_by(User.current))
+    assert_select 'feed>entry', :count => Project.count(:conditions => Project.visible_condition(User.current))
   end
   
   context "#index" do
@@ -288,6 +288,22 @@ class ProjectsControllerTest < ActionController::TestCase
     end
   end
   
+  def test_create_should_preserve_modules_on_validation_failure
+    with_settings :default_projects_modules => ['issue_tracking', 'repository'] do
+      @request.session[:user_id] = 1
+      assert_no_difference 'Project.count' do
+        post :create, :project => {
+          :name => "blog",
+          :identifier => "",
+          :enabled_module_names => %w(issue_tracking news)
+        }
+      end
+      assert_response :success
+      project = assigns(:project)
+      assert_equal %w(issue_tracking news), project.enabled_module_names.sort
+    end
+  end
+  
   def test_create_should_not_accept_get
     @request.session[:user_id] = 1
     get :create
@@ -448,16 +464,35 @@ class ProjectsControllerTest < ActionController::TestCase
     assert_response :redirect
     assert_redirected_to :controller => 'admin', :action => 'projects'
   end
-
-  context "POST :copy" do
-    should "TODO: test the rest of the method"
-
-    should "redirect to the project settings when successful" do
-      @request.session[:user_id] = 1 # admin
-      post :copy, :id => 1, :project => {:name => 'Copy', :identifier => 'unique-copy'}
-      assert_response :redirect
-      assert_redirected_to :controller => 'projects', :action => 'settings', :id => 'unique-copy'
+  
+  def test_post_copy_should_copy_requested_items
+    @request.session[:user_id] = 1 # admin
+    CustomField.delete_all
+    
+    assert_difference 'Project.count' do
+      post :copy, :id => 1,
+        :project => {
+          :name => 'Copy',
+          :identifier => 'unique-copy',
+          :tracker_ids => ['1', '2', '3', ''],
+          :enabled_modules => %w(issue_tracking time_tracking)
+        },
+        :only => %w(issues versions)
     end
+    project = Project.find('unique-copy')
+    source = Project.find(1)
+    assert_equal source.versions.count, project.versions.count, "All versions were not copied"
+    # issues assigned to a closed version won't be copied
+    assert_equal source.issues.select {|i| i.fixed_version.nil? || i.fixed_version.open?}.size,
+                 project.issues.count, "All issues were not copied"
+    assert_equal 0, project.members.count
+  end
+
+  def test_post_copy_should_redirect_to_settings_when_successful
+    @request.session[:user_id] = 1 # admin
+    post :copy, :id => 1, :project => {:name => 'Copy', :identifier => 'unique-copy'}
+    assert_response :redirect
+    assert_redirected_to :controller => 'projects', :action => 'settings', :id => 'unique-copy'
   end
 
   def test_jump_should_redirect_to_active_tab

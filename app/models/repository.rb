@@ -16,6 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 class Repository < ActiveRecord::Base
+  include Redmine::Ciphering
+  
   belongs_to :project
   has_many :changesets, :order => "#{Changeset.table_name}.committed_on DESC, #{Changeset.table_name}.id DESC"
   has_many :changes, :through => :changesets
@@ -24,17 +26,34 @@ class Repository < ActiveRecord::Base
   # has_many :changesets, :dependent => :destroy is too slow for big repositories
   before_destroy :clear_changesets
   
+  validates_length_of :password, :maximum => 255, :allow_nil => true
   # Checks if the SCM is enabled when creating a repository
   validate_on_create { |r| r.errors.add(:type, :invalid) unless Setting.enabled_scm.include?(r.class.name.demodulize) }
-  
+
+  def self.human_attribute_name(attribute_key_name)
+    attr_name = attribute_key_name
+    if attr_name == "log_encoding"
+      attr_name = "commit_logs_encoding"
+    end
+    super(attr_name)
+  end
+
   # Removes leading and trailing whitespace
   def url=(arg)
     write_attribute(:url, arg ? arg.to_s.strip : nil)
   end
-  
+
   # Removes leading and trailing whitespace
   def root_url=(arg)
     write_attribute(:root_url, arg ? arg.to_s.strip : nil)
+  end
+  
+  def password
+    read_ciphered_attribute(:password)
+  end
+  
+  def password=(arg)
+    write_ciphered_attribute(:password, arg)
   end
 
   def scm_adapter
@@ -42,11 +61,12 @@ class Repository < ActiveRecord::Base
   end
 
   def scm
-    @scm ||= self.scm_adapter.new url, root_url, login, password
+    @scm ||= self.scm_adapter.new(url, root_url,
+                                  login, password, path_encoding)
     update_attribute(:root_url, @scm.root_url) if root_url.blank?
     @scm
   end
-  
+
   def scm_name
     self.class.scm_name
   end
@@ -57,6 +77,14 @@ class Repository < ActiveRecord::Base
 
   def supports_annotate?
     scm.supports_annotate?
+  end
+
+  def supports_all_revisions?
+    true
+  end
+  
+  def supports_directory_revisions?
+    false
   end
   
   def entry(path=nil, identifier=nil)
@@ -78,15 +106,15 @@ class Repository < ActiveRecord::Base
   def default_branch
     scm.default_branch
   end
-  
+
   def properties(path, identifier=nil)
     scm.properties(path, identifier)
   end
-  
+
   def cat(path, identifier=nil)
     scm.cat(path, identifier)
   end
-  
+
   def diff(path, rev, rev_to)
     scm.diff(path, rev, rev_to)
   end
@@ -178,6 +206,11 @@ class Repository < ActiveRecord::Base
     end
   end
 
+  def repo_log_encoding
+    encoding = log_encoding.to_s.strip
+    encoding.blank? ? 'UTF-8' : encoding
+  end
+
   # Fetches new changesets for all repositories of active projects
   # Can be called periodically by an external script
   # eg. ruby script/runner "Repository.fetch_changesets"
@@ -205,7 +238,7 @@ class Repository < ActiveRecord::Base
   def self.available_scm
     subclasses.collect {|klass| [klass.scm_name, klass.name]}
   end
-  
+
   def self.factory(klass_name, *args)
     klass = "Repository::#{klass_name}".constantize
     klass.new(*args)
@@ -248,7 +281,7 @@ class Repository < ActiveRecord::Base
   end
 
   private
-  
+
   def before_save
     # Strips url and root_url
     url.strip!
