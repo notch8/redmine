@@ -1,0 +1,6 @@
+  host:     'http://projects.notch8.com'
+  github:   'notch8/redmine'
+  # Api key is required for private projects only.
+  api_key: 'ac569b0213ad7787ab433917d4ae4e5df1b8774a'
+  statuses:
+    reviewed: 5 
